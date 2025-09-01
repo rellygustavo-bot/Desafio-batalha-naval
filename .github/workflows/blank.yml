@@ -1,0 +1,130 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define TAM 10
+
+// símbolos:
+// ~ = agua
+// N = navio (nao mostrado ao jogador)
+// O = tiro na agua
+// X = navio atingido
+
+// Estrutura para os navios
+typedef struct {
+    int tamanho;
+    char nome[20];
+} Navio;
+
+// Lista de navios
+Navio navios[] = {
+    {5, "Porta-avioes"},
+    {4, "Navio-tanque"},
+    {3, "Contratorpedeiro 1"},
+    {3, "Contratorpedeiro 2"},
+    {2, "Submarino 1"},
+    {2, "Submarino 2"}
+};
+int qtdNavios = 6;
+
+void inicializarTabuleiro(char tab[TAM][TAM]) {
+    for(int i=0; i<TAM; i++)
+        for(int j=0; j<TAM; j++)
+            tab[i][j] = '~';
+}
+
+void imprimirTabuleiro(char tab[TAM][TAM], int mostrarNavios) {
+    printf("   ");
+    for(int i=0; i<TAM; i++) printf("%d ", i);
+    printf("\n");
+    for(int i=0; i<TAM; i++) {
+        printf("%2d ", i);
+        for(int j=0; j<TAM; j++) {
+            if(tab[i][j] == 'N' && !mostrarNavios)
+                printf("~ ");
+            else
+                printf("%c ", tab[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+int podeColocarNavio(char tab[TAM][TAM], int x, int y, int tamanho, int orientacao) {
+    if(orientacao == 0) { // horizontal
+        if(y + tamanho > TAM) return 0;
+        for(int i=0; i<tamanho; i++)
+            if(tab[x][y+i] != '~') return 0;
+    } else { // vertical
+        if(x + tamanho > TAM) return 0;
+        for(int i=0; i<tamanho; i++)
+            if(tab[x+i][y] != '~') return 0;
+    }
+    return 1;
+}
+
+void colocarNavio(char tab[TAM][TAM], int x, int y, int tamanho, int orientacao) {
+    if(orientacao == 0) { // horizontal
+        for(int i=0; i<tamanho; i++) tab[x][y+i] = 'N';
+    } else { // vertical
+        for(int i=0; i<tamanho; i++) tab[x+i][y] = 'N';
+    }
+}
+
+void posicionarNavios(char tab[TAM][TAM]) {
+    for(int n=0; n<qtdNavios; n++) {
+        int x, y, orientacao;
+        do {
+            x = rand() % TAM;
+            y = rand() % TAM;
+            orientacao = rand() % 2; // 0 = horizontal, 1 = vertical
+        } while(!podeColocarNavio(tab, x, y, navios[n].tamanho, orientacao));
+        colocarNavio(tab, x, y, navios[n].tamanho, orientacao);
+    }
+}
+
+int main() {
+    char tabuleiro[TAM][TAM];
+    int x, y, acertos = 0, tentativas = 0, totalPartes = 0;
+
+    srand(time(NULL));
+
+    inicializarTabuleiro(tabuleiro);
+    posicionarNavios(tabuleiro);
+
+    // Conta quantas células de navios existem
+    for(int n=0; n<qtdNavios; n++) totalPartes += navios[n].tamanho;
+
+    printf("=== Batalha Naval ===\n");
+    printf("Você precisa afundar todos os navios!\n");
+
+    while(acertos < totalPartes) {
+        imprimirTabuleiro(tabuleiro, 0);
+
+        printf("Digite a linha e a coluna (0-%d): ", TAM-1);
+        scanf("%d %d", &x, &y);
+
+        if(x<0 || x>=TAM || y<0 || y>=TAM) {
+            printf("Coordenadas invalidas!\n");
+            continue;
+        }
+
+        if(tabuleiro[x][y] == 'N') {
+            printf("Acertou um navio!\n");
+            tabuleiro[x][y] = 'X';
+            acertos++;
+        } else if(tabuleiro[x][y] == '~') {
+            printf("agua!\n");
+            tabuleiro[x][y] = 'O';
+        } else {
+            printf("Você ja tentou essa posicao!\n");
+        }
+
+        tentativas++;
+    }
+
+    printf("\n Parabens Você afundou todos os navios em %d tentativas!\n", tentativas);
+    imprimirTabuleiro(tabuleiro, 1);
+
+    return 0;
+}
+

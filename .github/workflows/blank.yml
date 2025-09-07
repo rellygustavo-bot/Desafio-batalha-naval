@@ -5,7 +5,7 @@
 #define TAM 10
 
 // símbolos:
-// ~ = agua
+// ~~ = agua
 // N = navio nao mostrado ao jogador
 // O = tiro na agua
 // X = navio atingido
